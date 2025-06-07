@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -140,28 +139,30 @@ public class LinkService {
         List<Link> expiringLinks = linkRepository.findByExpiresAtBetween(now, oneDayFromNow);
 
         for (Link link : expiringLinks) {
-            Optional<User> userOpt = userRepository.findById(link.getUserId());
+            if (link.isNotifyOn()) {
+                Optional<User> userOpt = userRepository.findById(link.getUserId());
 
-            if (userOpt.isPresent()) {
-                User user = userOpt.get();
+                if (userOpt.isPresent()) {
+                    User user = userOpt.get();
 
-                String formattedExpiry = link.getExpiresAt()
-                        .format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"));
+                    String formattedExpiry = link.getExpiresAt()
+                            .format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"));
 
-                String htmlMessage = MessageData.getExpiryNotificationMessageBody(link.getCustomCode(),
-                        formattedExpiry);
+                    String htmlMessage = MessageData.getExpiryNotificationMessageBody(link.getCustomCode(),
+                            formattedExpiry);
 
-                try {
-                    MimeMessage message = mailSender.createMimeMessage();
-                    MimeMessageHelper helper = new MimeMessageHelper(message, true);
+                    try {
+                        MimeMessage message = mailSender.createMimeMessage();
+                        MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-                    helper.setTo(user.getEmail());
-                    helper.setSubject("Your short link will expire soon");
-                    helper.setText(htmlMessage, true); // true enables HTML
+                        helper.setTo(user.getEmail());
+                        helper.setSubject("Your short link will expire soon");
+                        helper.setText(htmlMessage, true); // true enables HTML
 
-                    mailSender.send(message);
-                } catch (MessagingException e) {
-                    e.printStackTrace();
+                        mailSender.send(message);
+                    } catch (MessagingException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }

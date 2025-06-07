@@ -13,9 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.urlshortner.Dto.ResponseDTO;
 import com.urlshortner.Entity.Link;
-import com.urlshortner.Exception.UrlshortnerException;
 import com.urlshortner.Services.LinkService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
